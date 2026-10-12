@@ -1,0 +1,4 @@
+# Only one real dependency — the OpenAI client.
+# The project also runs WITHOUT this installed, in offline "mock mode".
+openai>=1.0.0
+python-dotenv>=1.0.0

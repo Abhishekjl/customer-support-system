@@ -1,0 +1,15 @@
+# Your real API key lives in .env — NEVER commit it.
+# (GitHub blocks pushes that contain secrets.)
+.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+env/
+
+# OS / editor junk
+.DS_Store
+.vscode/
+.idea/
