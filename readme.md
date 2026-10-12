@@ -45,6 +45,7 @@ whole trick. No heavy frameworks.
 | File | What it does |
 |------|--------------|
 | `main.py` | Terminal chat loop — the entry point. Shows the routing live. |
+| `dashboard.py` | Streamlit web dashboard — same engine, in the browser, with live routing analytics. |
 | `agents.py` | The Router + Specialist agents (the core logic). |
 | `knowledge_base.py` | The store's FAQ, used as AI context and for offline answers. |
 | `llm.py` | One tidy wrapper around the OpenAI API (+ error handling). |
@@ -108,6 +109,17 @@ pick an agent. Type `quit` or `exit` to stop.
 
 > 💡 **Shortcut (no activation needed):** instead of Steps 3 + 5 you can run the
 > app directly with `./venv/bin/python main.py` (macOS/Linux).
+
+### 🖥️ Step 5b (optional) — Run the web dashboard instead
+Prefer a browser UI over the terminal? The project ships a **Streamlit**
+dashboard that drives the exact same Router + Specialist agents, with a chat
+box and a live "routing so far" panel.
+```bash
+streamlit run dashboard.py
+```
+It opens automatically at <http://localhost:8501>. The sidebar shows whether
+you're in **LIVE** or **MOCK** mode and tallies how many messages each
+specialist handled. (Shortcut: `./venv/bin/streamlit run dashboard.py`.)
 
 ### 🛑 Step 6 — When you're done
 Leave the virtual environment with:

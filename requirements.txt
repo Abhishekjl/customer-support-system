@@ -1,4 +1,6 @@
-# Only one real dependency — the OpenAI client.
-# The project also runs WITHOUT this installed, in offline "mock mode".
+# Core: the OpenAI client (the terminal app also runs WITHOUT it, in "mock mode").
 openai>=1.0.0
 python-dotenv>=1.0.0
+
+# Web dashboard — only needed for `streamlit run dashboard.py`.
+streamlit>=1.30.0
