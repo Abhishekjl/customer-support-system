@@ -66,9 +66,9 @@ install Python from <https://www.python.org/downloads/>.
 
 ### 📁 Step 1 — Open a terminal in the project folder
 ```bash
-cd /Users/abhishekjaiswal/multiagent-customer-support
+cd path/to/multiagent-customer-support
 ```
-(Replace the path if you move the project somewhere else.)
+(Use the folder where you saved the project.)
 
 ### 📦 Step 2 — Create a virtual environment
 A "virtual environment" is a private folder that holds this project's packages,
@@ -165,11 +165,3 @@ You: I can't log in
 ```
 
 ---
-
-## 🧩 Ideas to extend it (for extra marks)
-
-- Add a **Supervisor/QA agent** that reviews a reply before it's sent.
-- Add an **escalate-to-human** path when confidence is low.
-- Give agents **tools** (e.g. a fake "look up order #123" function).
-- Add **conversation memory** so it remembers earlier messages.
-- Build a simple **web UI** with Streamlit instead of the terminal.
