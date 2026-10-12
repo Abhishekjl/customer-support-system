@@ -157,10 +157,6 @@ for msg in st.session_state.messages:
     else:
         category = msg["category"]
         with st.chat_message("assistant", avatar=ICONS[category]):
-            st.markdown(
-                f"{ICONS['Router']} *Router classified this as "
-                f"`{category}` → handed off to **{msg['agent_name']}**.*"
-            )
             st.markdown(msg["content"])
 
 # The chat box, pinned to the bottom of the page.

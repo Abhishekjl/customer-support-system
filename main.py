@@ -35,8 +35,6 @@ def handle_message(message):
     """Run one message through the full multi-agent pipeline and print the reply."""
     # Step 1: the Router picks a category.
     category = ROUTER.route(message)
-    print(f"   {ICONS['Router']} Router: classified as '{category}' "
-          f"-> handing off to {SPECIALISTS[category].name}")
 
     # Step 2: the matching Specialist answers.
     agent = SPECIALISTS[category]
