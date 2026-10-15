@@ -45,8 +45,9 @@ whole trick. No heavy frameworks.
 | File | What it does |
 |------|--------------|
 | `main.py` | Terminal chat loop — the entry point. Shows the routing live. |
-| `server.py` | FastAPI backend — same engine, exposed as a tiny JSON API, serving the web UI. |
-| `static/` | The browser front-end: `index.html` + `style.css` + `app.js` (plain HTML/CSS/JS). |
+| `server.py` | FastAPI backend for **local** dev — serves the web UI + the JSON API. |
+| `public/` | The browser front-end: `index.html` + `static/style.css` + `static/app.js` (plain HTML/CSS/JS). |
+| `api/` | Vercel serverless functions (`status.py`, `chat.py`) — the API in production. |
 | `agents.py` | The Router + Specialist agents (the core logic). |
 | `knowledge_base.py` | The store's FAQ, used as AI context and for offline answers. |
 | `llm.py` | One tidy wrapper around the OpenAI API (+ error handling). |
@@ -122,10 +123,11 @@ Then open <http://localhost:8000> in your browser. The sidebar shows whether
 you're in **LIVE** or **MOCK** mode and tallies how many messages each
 specialist handled.
 
-> 💡 **How it's wired:** `server.py` exposes two endpoints — `GET /api/status`
+> 💡 **How it's wired (local):** `server.py` exposes two endpoints — `GET /api/status`
 > (live vs mock) and `POST /api/chat` (routes one message and returns the
-> reply) — and serves the page in `static/`. The browser keeps the conversation
-> and the routing tallies; the server stays stateless.
+> reply) — and serves the page in `public/`. The browser keeps the conversation
+> and the routing tallies; the server stays stateless. On Vercel these two
+> endpoints are the serverless functions in `api/` instead (same agent logic).
 >
 > You can also run it with uvicorn's auto-reload during development:
 > `./venv/bin/uvicorn server:app --reload` (same URL). Interactive API docs are
@@ -181,8 +183,9 @@ routes one message at a time). Three files make this work:
 
 | File | Role |
 |------|------|
-| `api/index.py` | The entry point Vercel runs — it just re-exports the FastAPI `app` from `server.py`. |
-| `vercel.json` | Routes every request to that function and bundles `static/` + the agent modules. |
+| `public/` | The front-end — served straight from Vercel's CDN (`/` and `/static/*`). |
+| `api/status.py`, `api/chat.py` | One serverless function per endpoint — Vercel maps them to `/api/status` and `/api/chat` by filename (no rewrites needed). |
+| `vercel.json` | Bundles the shared agent modules into the functions and sets a 30s timeout. |
 | `.vercelignore` | Keeps `venv/`, caches, and `.env` out of the upload. |
 
 ### Option A — Deploy from GitHub (recommended)

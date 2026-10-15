@@ -28,7 +28,11 @@ ICONS = {
     "general": "📦",
 }
 
-STATIC_DIR = Path(__file__).parent / "static"
+# The browser front-end lives in public/ so that BOTH this local server and
+# Vercel serve it the same way (on Vercel, public/ is served straight from the
+# CDN; here we serve it ourselves). index.html references /static/... which maps
+# to public/static/... in both places.
+PUBLIC_DIR = Path(__file__).parent / "public"
 
 app = FastAPI(title="ShopEasy — Multi-Agent Support")
 
@@ -107,11 +111,11 @@ def chat(req: ChatRequest):
 @app.get("/")
 def index():
     """Serve the single-page app."""
-    return FileResponse(STATIC_DIR / "index.html")
+    return FileResponse(PUBLIC_DIR / "index.html")
 
 
 # Everything else (style.css, app.js, …) is served as static files.
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+app.mount("/static", StaticFiles(directory=PUBLIC_DIR / "static"), name="static")
 
 
 if __name__ == "__main__":

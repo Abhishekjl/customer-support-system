@@ -1,4 +1,4 @@
-# Keep the deployment bundle lean — none of this is needed on Vercel.
+# Keep the deployment upload lean — none of this is needed on Vercel.
 venv/
 .venv/
 env/
@@ -7,5 +7,3 @@ __pycache__/
 .env
 .DS_Store
 .vercel
-main.py
-readme.md
