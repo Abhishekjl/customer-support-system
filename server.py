@@ -11,8 +11,8 @@ stays stateless, so one message in = one routed reply out.
 
 from pathlib import Path
 
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -69,40 +69,49 @@ def run_pipeline(message):
 
 
 # ---------------------------------------------------------------------------
-# API routes
+# Endpoint logic (shared by the typed routes and the Vercel shim below)
+# ---------------------------------------------------------------------------
+def _status_payload():
+    """Whether we're on the real AI (LIVE) or offline (MOCK)."""
+    live = llm.is_live()
+    return {
+        "live": live,
+        "mode": "LIVE" if live else "MOCK",
+        "model": MODEL if live else "offline canned answers",
+    }
+
+
+def _chat_payload(message):
+    """Run one customer message through the full multi-agent pipeline."""
+    message = (message or "").strip()
+    if not message:
+        # An empty message just gets a gentle nudge rather than an error.
+        return {
+            "category": "general",
+            "agent_name": SPECIALISTS["general"].name,
+            "icon": ICONS["general"],
+            "reply": "Please type a question and I'll route it to the right specialist. 🙂",
+        }
+    category, agent_name, reply = run_pipeline(message)
+    return {
+        "category": category,
+        "agent_name": agent_name,
+        "icon": ICONS[category],
+        "reply": reply,
+    }
+
+
+# ---------------------------------------------------------------------------
+# API routes (used locally, and on Vercel when the real path is preserved)
 # ---------------------------------------------------------------------------
 @app.get("/api/status", response_model=StatusResponse)
 def status():
-    """Tell the UI whether we're on the real AI (LIVE) or offline (MOCK)."""
-    live = llm.is_live()
-    return StatusResponse(
-        live=live,
-        mode="LIVE" if live else "MOCK",
-        model=MODEL if live else "offline canned answers",
-    )
+    return StatusResponse(**_status_payload())
 
 
 @app.post("/api/chat", response_model=ChatResponse)
 def chat(req: ChatRequest):
-    """Run one customer message through the full multi-agent pipeline."""
-    message = req.message.strip()
-    if not message:
-        # Keep the contract simple: an empty message just gets a gentle nudge
-        # from the general agent rather than an error the UI has to handle.
-        return ChatResponse(
-            category="general",
-            agent_name=SPECIALISTS["general"].name,
-            icon=ICONS["general"],
-            reply="Please type a question and I'll route it to the right specialist. 🙂",
-        )
-
-    category, agent_name, reply = run_pipeline(message)
-    return ChatResponse(
-        category=category,
-        agent_name=agent_name,
-        icon=ICONS[category],
-        reply=reply,
-    )
+    return ChatResponse(**_chat_payload(req.message))
 
 
 # ---------------------------------------------------------------------------
@@ -128,6 +137,28 @@ def index():
 
 if _STATIC_DIR.is_dir():
     app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
+
+
+# ---------------------------------------------------------------------------
+# Vercel path shim — registered LAST so it only catches what nothing else did.
+#
+# Vercel's "/api/(.*) -> /api/index" rewrite hands this app the *destination*
+# path (/api/index) instead of the original (/api/status | /api/chat), which
+# collapses both endpoints onto one path and 404s the typed routes above. Our
+# two API endpoints use distinct HTTP methods, so we dispatch by method here and
+# the app works regardless of which path Vercel passes through. Locally the
+# typed routes match first and this never runs.
+# ---------------------------------------------------------------------------
+@app.api_route("/{_catch_all:path}", methods=["GET", "POST"])
+async def _vercel_shim(_catch_all: str, request: Request):
+    if request.method == "GET":
+        return JSONResponse(_status_payload())
+    try:
+        data = await request.json()
+    except Exception:
+        data = {}
+    message = data.get("message", "") if isinstance(data, dict) else ""
+    return JSONResponse(_chat_payload(message))
 
 
 if __name__ == "__main__":
