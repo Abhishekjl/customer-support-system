@@ -107,15 +107,27 @@ def chat(req: ChatRequest):
 
 # ---------------------------------------------------------------------------
 # Serve the web UI
+#
+# These two routes exist for LOCAL dev (`python server.py`). On Vercel the
+# frontend in public/ is served straight from the CDN and never reaches this
+# app, so the public/ folder isn't bundled into the serverless function — which
+# is why both are guarded: importing this module must never crash just because
+# public/ is absent (that was the FUNCTION_INVOCATION_FAILED on Vercel).
 # ---------------------------------------------------------------------------
+_INDEX_FILE = PUBLIC_DIR / "index.html"
+_STATIC_DIR = PUBLIC_DIR / "static"
+
+
 @app.get("/")
 def index():
-    """Serve the single-page app."""
-    return FileResponse(PUBLIC_DIR / "index.html")
+    """Serve the single-page app (local dev); on Vercel the CDN handles this."""
+    if _INDEX_FILE.is_file():
+        return FileResponse(_INDEX_FILE)
+    return {"status": "ok", "note": "API is up; frontend is served by the CDN."}
 
 
-# Everything else (style.css, app.js, …) is served as static files.
-app.mount("/static", StaticFiles(directory=PUBLIC_DIR / "static"), name="static")
+if _STATIC_DIR.is_dir():
+    app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
 
 
 if __name__ == "__main__":

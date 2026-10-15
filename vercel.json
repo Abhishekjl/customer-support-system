@@ -1,16 +1,11 @@
 {
   "functions": {
-    "api/status.py": {
-      "includeFiles": "{agents.py,config.py,llm.py,knowledge_base.py}",
-      "maxDuration": 30
-    },
-    "api/chat.py": {
-      "includeFiles": "{agents.py,config.py,llm.py,knowledge_base.py}",
-      "maxDuration": 30
-    },
-    "api/debug.py": {
-      "includeFiles": "{agents.py,config.py,llm.py,knowledge_base.py}",
+    "api/index.py": {
+      "includeFiles": "{server.py,agents.py,config.py,llm.py,knowledge_base.py}",
       "maxDuration": 30
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index" }
+  ]
 }
