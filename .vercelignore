@@ -1,0 +1,11 @@
+# Keep the deployment bundle lean — none of this is needed on Vercel.
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+.vercel
+main.py
+readme.md

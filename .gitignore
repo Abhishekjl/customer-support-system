@@ -13,3 +13,6 @@ env/
 .DS_Store
 .vscode/
 .idea/
+
+# Vercel
+.vercel

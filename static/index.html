@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShopEasy — Multi-Agent Support</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛍️</text></svg>" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- ───────────────────────── Sidebar ───────────────────────── -->
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand__logo">🛍️</span>
+        <div>
+          <h1 class="brand__name">ShopEasy</h1>
+          <p class="brand__tag">Multi-Agent Support</p>
+        </div>
+      </div>
+
+      <div id="mode-badge" class="mode mode--loading">
+        <span class="mode__dot"></span>
+        <div class="mode__text">
+          <strong id="mode-label">Connecting…</strong>
+          <span id="mode-sub">checking mode</span>
+        </div>
+      </div>
+
+      <section class="panel">
+        <h2 class="panel__title">Routing so far</h2>
+
+        <div class="stats">
+          <div class="stat stat--billing">
+            <span class="stat__icon">💳</span>
+            <span class="stat__num" id="count-billing">0</span>
+            <span class="stat__label">Billing</span>
+          </div>
+          <div class="stat stat--technical">
+            <span class="stat__icon">🛠️</span>
+            <span class="stat__num" id="count-technical">0</span>
+            <span class="stat__label">Technical</span>
+          </div>
+          <div class="stat stat--general">
+            <span class="stat__icon">📦</span>
+            <span class="stat__num" id="count-general">0</span>
+            <span class="stat__label">General</span>
+          </div>
+        </div>
+
+        <div class="bars" id="bars">
+          <div class="bar-row">
+            <span class="bar-row__label">Billing</span>
+            <div class="bar-track"><div class="bar-fill bar-fill--billing" id="bar-billing"></div></div>
+          </div>
+          <div class="bar-row">
+            <span class="bar-row__label">Technical</span>
+            <div class="bar-track"><div class="bar-fill bar-fill--technical" id="bar-technical"></div></div>
+          </div>
+          <div class="bar-row">
+            <span class="bar-row__label">General</span>
+            <div class="bar-track"><div class="bar-fill bar-fill--general" id="bar-general"></div></div>
+          </div>
+        </div>
+
+        <p class="panel__note" id="total-note">No messages yet — ask something to see the routing.</p>
+      </section>
+
+      <button id="clear-btn" class="clear-btn">🗑️ Clear conversation</button>
+
+      <details class="how">
+        <summary>🧠 How the flow works</summary>
+        <p>Every message flows through two agents:</p>
+        <pre class="how__diagram">      Customer message
+             │
+             ▼
+     ┌────────────────┐
+     │ 🧭 Router Agent │
+     └───────┬────────┘
+       billing · technical · general
+      ┌──────┼───────┐
+      ▼      ▼       ▼
+   💳 Bill  🛠️ Tech  📦 Gen</pre>
+        <p>The <strong>Router</strong> classifies the message, then hands off to one
+          <strong>Specialist</strong> grounded in the store's knowledge base.</p>
+      </details>
+    </aside>
+
+    <!-- ───────────────────────── Main chat ───────────────────────── -->
+    <main class="main">
+      <header class="main__header">
+        <h2>Customer Support Assistant</h2>
+        <p>A <strong>🧭 Router</strong> picks the category, then the matching specialist answers.</p>
+      </header>
+
+      <div class="chat" id="chat">
+        <!-- Welcome / examples (removed once the chat starts) -->
+        <div class="welcome" id="welcome">
+          <div class="welcome__icon">👋</div>
+          <h3>Ask about billing, a technical issue, or an order.</h3>
+          <p>Try one of these to watch the routing happen:</p>
+          <div class="examples" id="examples">
+            <button class="example">I was charged twice for my order</button>
+            <button class="example">I forgot my password and can't log in</button>
+            <button class="example">Where is my order? It hasn't arrived yet</button>
+            <button class="example">How do I cancel my ShopEasy Plus membership?</button>
+          </div>
+        </div>
+      </div>
+
+      <form class="composer" id="composer" autocomplete="off">
+        <input
+          id="input"
+          class="composer__input"
+          type="text"
+          placeholder="Ask about billing, a technical issue, or an order…"
+          aria-label="Your message"
+        />
+        <button class="composer__send" id="send-btn" type="submit" aria-label="Send">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
+      </form>
+    </main>
+
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

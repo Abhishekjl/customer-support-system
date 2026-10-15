@@ -45,12 +45,13 @@ whole trick. No heavy frameworks.
 | File | What it does |
 |------|--------------|
 | `main.py` | Terminal chat loop — the entry point. Shows the routing live. |
-| `dashboard.py` | Streamlit web dashboard — same engine, in the browser, with live routing analytics. |
+| `server.py` | FastAPI backend — same engine, exposed as a tiny JSON API, serving the web UI. |
+| `static/` | The browser front-end: `index.html` + `style.css` + `app.js` (plain HTML/CSS/JS). |
 | `agents.py` | The Router + Specialist agents (the core logic). |
 | `knowledge_base.py` | The store's FAQ, used as AI context and for offline answers. |
 | `llm.py` | One tidy wrapper around the OpenAI API (+ error handling). |
 | `config.py` | Reads the API key / model and picks live vs mock mode. |
-| `requirements.txt` | Dependencies (`openai`, `python-dotenv`). |
+| `requirements.txt` | Dependencies (`openai`, `python-dotenv`, `fastapi`, `uvicorn`). |
 | `.env.example` | Template for your API key. |
 
 ---
@@ -97,8 +98,8 @@ When it's active, your terminal prompt shows `(venv)` at the start.
 ```bash
 pip install -r requirements.txt
 ```
-This installs the two packages the project needs: `openai` and `python-dotenv`.
-You only need to do this **once** per virtual environment.
+This installs `openai`, `python-dotenv`, and — for the web UI — `fastapi` and
+`uvicorn`. You only need to do this **once** per virtual environment.
 
 ### ▶️ Step 5 — Run the app
 ```bash
@@ -110,16 +111,25 @@ pick an agent. Type `quit` or `exit` to stop.
 > 💡 **Shortcut (no activation needed):** instead of Steps 3 + 5 you can run the
 > app directly with `./venv/bin/python main.py` (macOS/Linux).
 
-### 🖥️ Step 5b (optional) — Run the web dashboard instead
-Prefer a browser UI over the terminal? The project ships a **Streamlit**
-dashboard that drives the exact same Router + Specialist agents, with a chat
-box and a live "routing so far" panel.
+### 🖥️ Step 5b (optional) — Run the web UI instead
+Prefer a browser UI over the terminal? The project ships a **FastAPI** backend
+plus a plain **HTML/CSS/JavaScript** front-end that drives the exact same Router
++ Specialist agents, with a chat box and a live "routing so far" panel.
 ```bash
-streamlit run dashboard.py
+python server.py
 ```
-It opens automatically at <http://localhost:8501>. The sidebar shows whether
+Then open <http://localhost:8000> in your browser. The sidebar shows whether
 you're in **LIVE** or **MOCK** mode and tallies how many messages each
-specialist handled. (Shortcut: `./venv/bin/streamlit run dashboard.py`.)
+specialist handled.
+
+> 💡 **How it's wired:** `server.py` exposes two endpoints — `GET /api/status`
+> (live vs mock) and `POST /api/chat` (routes one message and returns the
+> reply) — and serves the page in `static/`. The browser keeps the conversation
+> and the routing tallies; the server stays stateless.
+>
+> You can also run it with uvicorn's auto-reload during development:
+> `./venv/bin/uvicorn server:app --reload` (same URL). Interactive API docs are
+> at <http://localhost:8000/docs>.
 
 ### 🛑 Step 6 — When you're done
 Leave the virtual environment with:
@@ -160,6 +170,51 @@ values in a `.env` file. The banner then shows **LIVE**.
 > of requests per minute). If you ask questions very quickly you may briefly hit
 > the limit — the app just shows a short note and uses an offline answer, then
 > recovers on the next question. It never crashes.
+
+---
+
+## ☁️ Deploy to Vercel
+
+The web UI runs on Vercel as a **serverless function** — a perfect fit, since
+the backend is stateless (the browser keeps the chat + tallies; the server just
+routes one message at a time). Three files make this work:
+
+| File | Role |
+|------|------|
+| `api/index.py` | The entry point Vercel runs — it just re-exports the FastAPI `app` from `server.py`. |
+| `vercel.json` | Routes every request to that function and bundles `static/` + the agent modules. |
+| `.vercelignore` | Keeps `venv/`, caches, and `.env` out of the upload. |
+
+### Option A — Deploy from GitHub (recommended)
+1. Push this repo to GitHub.
+2. Go to <https://vercel.com/new>, **Import** the repo. Vercel auto-detects the
+   Python function — just click **Deploy**.
+3. **Set the environment variables** (Project → Settings → Environment Variables),
+   otherwise the live app falls back to MOCK answers:
+   | Name | Value |
+   |------|-------|
+   | `OPENAI_API_KEY` | your Gemini (or other) key |
+   | `OPENAI_BASE_URL` | `https://generativelanguage.googleapis.com/v1beta/openai/` |
+   | `OPENAI_MODEL` | `gemini-flash-lite-latest` |
+4. **Redeploy** (Deployments → ⋯ → Redeploy) so the new variables take effect.
+
+### Option B — Deploy from the CLI
+```bash
+npm i -g vercel      # one-time install
+vercel               # first run links/creates the project
+# add secrets (repeat for each, or set them in the dashboard):
+vercel env add OPENAI_API_KEY
+vercel env add OPENAI_BASE_URL
+vercel env add OPENAI_MODEL
+vercel --prod        # ship it
+```
+
+> ⚠️ **Never commit `.env`** — it's gitignored for a reason. On Vercel the key
+> lives only in the Environment Variables settings. Without those variables the
+> site still works, just in free offline **MOCK** mode.
+>
+> ⏱️ Each reply is a single model call, well within the 30s function limit set
+> in `vercel.json` (`maxDuration`).
 
 ---
 

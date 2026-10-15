@@ -2,5 +2,6 @@
 openai>=1.0.0
 python-dotenv>=1.0.0
 
-# Web dashboard — only needed for `streamlit run dashboard.py`.
-streamlit>=1.30.0
+# Web UI — only needed for the FastAPI server (`python server.py`).
+fastapi>=0.110.0
+uvicorn>=0.27.0
